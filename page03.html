@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ghub</title>
+    <style>
+        /* 기본 여백 초기화 및 배경 설정 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background-image: url('images/image4.png'); /* page03 이미지 경로에 맞게 수정 */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 내비게이션 바 (상단 메뉴와 통일) */
+        .navbar {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 40px 60px;
+            z-index: 1000;
+        }
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .nav-menu li a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 20x;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+
+        .nav-menu li a:hover { color: #00b8ff; }
+        .nav-menu li .btn-buy {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 10px 24px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        .nav-menu li .btn-buy:hover { background-color: #00b8ff; color: #ffffff; }
+
+        
+        .ghub-text-box {
+            position: absolute;
+            top: 50%;             /* 세로 정중앙 배치 */
+            left: 8%;             /* 💡 모니터를 가리지 않도록 좌측 여백 확보 */
+            transform: translateY(-50%);
+            color: #ffffff;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            z-index: 500;
+            max-width: 500px;     /* 줄바꿈 너비 설정 */
+            text-align: left;     /* 좌측 정렬 */
+        }
+
+        /* 메인 대형 타이틀 */
+        .ghub-title {
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            
+            /* G HUB 아이덴티티와 연결되는 은은한 텍스트 섀도우 */
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        /* 서브 가이드 문구 */
+        .ghub-subtitle {
+            font-size: 17px;
+            font-weight: 400;
+            color: #b3b3b3;       /* 세련된 톤의 회색 */
+            line-height: 1.7;
+            letter-spacing: 0.3px;
+            word-break: keep-all; /* 한국어 줄바꿈 자연스럽게 고정 */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 우상단 내비게이션 메뉴 (디자인 연속성 유지) -->
+    <nav class="navbar">
+        <ul class="nav-menu">
+            <li><a href="index.html">INTRO</a></li>
+            <li><a href="page01.html">PRODUCT</a></li>
+            <li><a href="page02.html">TECHNOLOGY</a></li>
+            <li><a href="page03.html">G HUB</a></li>
+            <li><a href="page04.html">SPEC</a></li>
+        </ul>
+    </nav>
+
+    <!-- 💡 좌측 홍보 문구 영역 (1안 적용 예시) -->
+    <div class="ghub-text-box">
+        <h1 class="ghub-title">TOTAL<br>CONTROL</h1>
+        <p class="ghub-subtitle">
+            로지텍 G HUB를 통해 DPI 설정, 버튼 매핑, 센서 보정까지 마우스의 모든 잠재력을 정밀하게 튜닝하고 당신만의 플레이 스타일을 완성하세요.
+        </p>
+    </div>
+
+</body>
+</html>
