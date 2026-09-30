@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tech</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background-image: url('images/image3.png'); 
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            overflow: hidden;
+            position: relative;
+        }
+
+        ul{
+            list-style: none;
+        }
+
+        .navbar {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 40px 60px; 
+            z-index: 1000;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 40px; 
+        }
+
+        .nav-menu li a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 20x;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+
+         .nav-menu li a:hover {
+            color: #00b8ff; 
+        }
+
+    
+        .sensor-text-box {
+            position: absolute;
+            top: 50%;             /* 세로 정중앙 배치 */
+            right: 8%;            /* 💡 이번에는 우측 여백 확보 (칩 이미지 보호) */
+            transform: translateY(-50%);
+            color: #ffffff;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            z-index: 500;
+            max-width: 520px;     /* 줄바꿈 너비 설정 */
+            text-align: right;    /* 텍스트 우측 정렬로 레이아웃 안정감 부여 */
+        }
+
+        
+        .sensor-title {
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            
+            text-shadow: 0 0 30px rgba(0, 184, 255, 0.2);
+        }
+
+       
+        .sensor-subtitle {
+            font-size: 17px;
+            font-weight: 400;
+            color: #cccccc;       /* 가독성을 높이기 위해 이전보다 살짝 밝은 회색 조율 */
+            line-height: 1.7;
+            letter-spacing: 0.3px;
+            word-break: keep-all; /* 아웃풋 글자가 어색하게 끊기지 않도록 방지 */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 우상단 내비게이션 메뉴 (페이지 간 디자인 통일) -->
+    <nav class="navbar">
+        <ul class="nav-menu">
+            <li><a href="index.html">INTRO</a></li>
+            <li><a href="page01.html">PRODUCT</a></li>
+            <li><a href="page02.html">TECHNOLOGY</a></li>
+            <li><a href="page03.html">G HUB</a></li>
+            <li><a href="page04.html">SPEC</a></li>
+        </ul>
+    </nav>
+
+    <!-- 💡 우측 홍보 문구 영역 (1안 적용 예시) -->
+    <div class="sensor-text-box">
+        <h1 class="sensor-title">HERO 2<br>SENSOR</h1>
+        <p class="sensor-subtitle">
+            차세대 게이밍의 새로운 기준.<br>
+            서브 마이크론 수준의 정밀함으로<br>
+            플레이어의 모든 미세한 움직임을 완벽하게 추적합니다.
+        </p>
+    </div>
+
+</body>
+</html>

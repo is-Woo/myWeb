@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>product</title>
+    <style>
+
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+         body {
+            width: 100vw;
+            height: 100vh;
+            background-image: url('images/image2.png'); 
+            background-size: cover;     
+            background-position: center; 
+            background-repeat: no-repeat;
+            overflow: hidden;
+            position: relative;        
+        }
+
+        ul{
+            list-style: none;
+        }
+
+        .navbar {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 40px 60px; 
+            z-index: 1000;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 40px; 
+        }
+
+        .nav-menu li a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 20x;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+
+         .nav-menu li a:hover {
+            color: #00b8ff; 
+        }
+        
+         .main {
+            position: absolute;
+            top: 50%;             /* 세로 정중앙 배치 */
+            left: 8%;             /* 좌측 여백 설정 (마우스 이미지 공간 확보) */
+            transform: translateY(-50%); /* 정확한 세로 중앙 정렬을 위한 보정 */
+            color: #ffffff;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            z-index: 500;
+            max-width: 500px;     /* 텍스트 줄바꿈 너비 제한 */
+        }
+
+        /* 메인 대형 타이틀 */
+        .main_copy {
+            font-size: 56px;      /* 기업 홍보 페이지 특유의 압도적인 크기 */
+            font-weight: 800;     /* 아주 두껍게 처리하여 주목도 향상 */
+            line-height: 1.1;
+            letter-spacing: -1px; /* 영문 자간을 좁혀 트렌디한 느낌 생성 */
+            margin-bottom: 20px;
+            text-transform: uppercase; /* 영문을 모두 대문자로 강제 변환 */
+            
+            /* 은은한 글자 빛 효과 (블랙 배경 대비 선명도 상승) */
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.1); 
+        }
+
+        /* 서브 가이드 문구 */
+        .sub_copy {
+            font-size: 18px;
+            font-weight: 400;
+            color: #b3b3b3;      
+            line-height: 1.6;
+            letter-spacing: 0.5px;
+        }
+    
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <ul class="nav-menu">
+            <li><a href="index.html">INTRO</a></li>
+            <li><a href="page01.html">PRODUCT</a></li>
+            <li><a href="page02.html">TECHNOLOGY</a></li>
+            <li><a href="page03.html">G HUB</a></li>
+            <li><a href="page04.html">SPEC</a></li>
+        </ul>
+    </nav>
+
+     <div class="main">
+        <h1 class="main_copy">LIGHT.<br>FAST.<br>ACCURATE.</h1>
+        <p class="sub_copy">승리를 위한 완벽한 정밀함,<br>로지텍 G PRO X SUPERLIGHT 2</p>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>spec&buy</title>
+    <style>
+        /* 기본 여백 초기화 및 배경 설정 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background-image: url('images/image5.png'); /* 마지막 페이지 배경 이미지 경로 */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 내비게이션 바 (이전 페이지들과 완벽히 일치) */
+        .navbar {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 40px 60px;
+            z-index: 1000;
+        }
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+        .nav-menu li a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 20x;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+        .nav-menu li a:hover { color: #00b8ff; }
+        .nav-menu li .btn-buy {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 10px 24px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        .nav-menu li .btn-buy:hover { background-color: #00b8ff; color: #ffffff; }
+
+        .closing-container {
+            position: absolute;
+            top: 50%;
+            left: 8%;
+            right: 8%;
+            transform: translateY(-50%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 500;
+        }
+
+        /* 좌측: 미니멀 스펙 인포 영역 */
+        .spec-area {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .spec-item {
+            color: #ffffff;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .spec-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: #00b8ff; /* 로지텍 시그니처 블루로 데이터 강조 */
+            margin-bottom: 5px;
+        }
+
+        .spec-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #b3b3b3;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* 우측: 최종 구매 유도 영역 */
+        .action-area {
+            text-align: right;
+            max-width: 500px;
+        }
+
+        .action-title {
+            font-size: 48px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.2;
+            margin-bottom: 15px;
+            letter-spacing: -0.5px;
+        }
+
+        .action-subtitle {
+            font-size: 16px;
+            color: #cccccc;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        /* 메인 대형 BUY NOW 버튼 */
+        .main-buy-btn {
+            display: inline-block;
+            background-color: #00b8ff; /* 시선을 사로잡는 포인트 컬러 */
+            color: #ffffff;
+            text-decoration: none;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            padding: 16px 45px;
+            border-radius: 30px;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 30px rgba(0, 184, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .main-buy-btn:hover {
+            background-color: #ffffff;
+            color: #000000;
+            transform: translateY(-3px); /* 호버 시 살짝 떠오르는 효과 */
+            box-shadow: 0 15px 35px rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 우상단 내비게이션 메뉴 (일관성 유지) -->
+    <nav class="navbar">
+        <ul class="nav-menu">
+            <li><a href="index.html">INTRO</a></li>
+            <li><a href="page01.html">PRODUCT</a></li>
+            <li><a href="page02.html">TECHNOLOGY</a></li>
+            <li><a href="page03.html">G HUB</a></li>
+            <li><a href="page04.html">SPEC</a></li>
+        </ul>
+    </nav>
+
+    <!-- 💡 page04 메인 콘텐츠 영역 -->
+    <div class="closing-container">
+        
+        <!-- 좌측: 핵심 성능 요약 (디자인 스케일 밸런스) -->
+        <div class="spec-area">
+            <div class="spec-item">
+                <div class="spec-value">60g 미만</div>
+                <div class="spec-label">초경량 비대칭 디자인</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-value">8,000 Hz</div>
+                <div class="spec-label">LIGHTSPEED 무선 폴링레이트</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-value">HERO 2</div>
+                <div class="spec-label">차세대 초정밀 센서</div>
+            </div>
+        </div>
+
+        <!-- 우측: 최종 액션 유도 -->
+        <div class="action-area">
+            <h1 class="action-title">READY TO<br>WIN?</h1>
+            <p class="action-subtitle">
+                승리를 향한 마지막 조각.<br>
+                새로워진 G PRO X SUPERLIGHT와 함께 한계를 뛰어넘으세요.
+            </p>
+            <a href="shopping.html" class="main-buy-btn">BUY NOW</a>
+        </div>
+
+    </div>
+
+</body>
+</html>
