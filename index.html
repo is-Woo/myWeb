@@ -3,299 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apple Style Birthday Intro</title>
+    <title>메인 | My Hub</title>
     <style>
-        /* 기본 배경 및 폰트 설정 */
+        /* 기본 스타일 리셋 */
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
+
         body {
-            background-color: #000; /* 깊은 블랙 톤 유지 */
-            color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            font-weight: 900;
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif;
+            background-color: #f8f9fa;
+            color: #333333;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            letter-spacing: -0.05em;
+            padding: 20px;
         }
 
-        /* ==========================================
-           [0단계] 첫 화면: 스타트 버튼 및 대기 화면
-           ========================================== */
-        .start-screen {
-            position: absolute;
+        .container {
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+        }
+
+        /* 헤더 영역 */
+        header {
+            margin-bottom: 32px;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #111111;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 0.9rem;
+            color: #767676;
+        }
+
+        /* 카드 선택 영역 */
+        .choice {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 30px;
-            z-index: 10;
-            transition: opacity 0.5s ease, visibility 0.5s;
-        }
-        .start-title {
-            font-size: 4rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-        }
-        .start-btn {
-            background-color: #fff;
-            color: #000;
-            border: none;
-            padding: 14px 36px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: transform 0.2s ease, background-color 0.2s;
-            font-family: inherit;
-        }
-        .start-btn:hover {
-            transform: scale(1.05);
-            background-color: #e5e5e5;
-        }
-        .start-btn:active {
-            transform: scale(0.98);
+            gap: 16px;
         }
 
-        /* 모바일 대응 */
-        @media (max-width: 768px) {
-            .start-title { font-size: 2.2rem; }
-            .start-btn { padding: 12px 28px; font-size: 1rem; }
-        }
-
-        /* 버튼이 클릭되면 첫 화면을 전면 숨김 */
-        body.is-active .start-screen {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        /* ==========================================
-           인트로 컨테이너 및 기본 단어 설정
-           ========================================== */
-        .intro-container {
-            position: relative;
-            font-size: 7.5rem;
-            text-align: center;
-            text-transform: uppercase;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            visibility: hidden; /* 초기엔 숨김 */
-        }
-
-        @media (max-width: 768px) {
-            .intro-container { font-size: 3.5rem; }
-        }
-
-        .word {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%) scale(1.5);
-            opacity: 0;
-            width: 100%;
-            white-space: nowrap;
-        }
-
-        /* ==========================================
-           [클릭 후 실행] body.is-active 상태일 때만 애니메이션 작동
-           ========================================== */
-        body.is-active .intro-container {
-            visibility: visible;
-        }
-
-        /* 1파트: 질문 (클릭 후 즉시 0.1초~1.7초) */
-        body.is-active .q1 { animation: popText 0.4s ease-out 0.1s forwards; }
-        body.is-active .q2 { animation: popText 0.4s ease-out 0.5s forwards; }
-        body.is-active .q3 { animation: popText 0.4s ease-out 0.9s forwards; }
-        body.is-active .q4 { animation: popText 0.4s ease-out 1.3s forwards; }
-
-        /* 2파트: 감성 문구 (1.9초 ~ 3.9초) */
-        body.is-active .w1 { animation: popText 0.4s ease-out 1.9s forwards; }
-        body.is-active .w2 { animation: popText 0.4s ease-out 2.3s forwards; }
-        body.is-active .w3 { animation: popText 0.4s ease-out 2.7s forwards; }
-        body.is-active .w4 { animation: finalZoom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 3.1s forwards; }
-
-
-        /* ==========================================
-           [애니메이션 키프레임] 애플 특유의 타격감
-           ========================================== */
-        @keyframes popText {
-            0% { transform: translate(-50%, -50%) scale(1.7); opacity: 0; filter: blur(8px); }
-            15% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; filter: blur(0px); }
-            85% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(0.95); opacity: 0; }
-        }
-
-        @keyframes finalZoom {
-            0% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; filter: blur(5px); }
-            20% { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: blur(0px); }
-            65% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(5); opacity: 0; visibility: hidden; }
-        }
-
-         /* ==========================================
-           [3단계] 복구된 정중앙 교체형 타이핑 박스 영역
-           ========================================== */
-        .full-message-box {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 100%;
+        .choice-card {
             display: flex;
             align-items: center;
-            justify-content: center;
-            background: transparent;
+            justify-content: space-between;
+            background-color: #ffffff;
+            padding: 24px;
+            border-radius: 16px;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f0f0f0;
+            transition: all 0.25s ease;
         }
 
-        .line {
-            position: absolute; /* 한 자리에 정확히 겹쳐두기 */
-            font-size: 1.5rem;
-            font-weight: 400;
-            color: #d4d4d4;
-            letter-spacing: -0.02em;
-            text-align: center;
-            
-            width: 0; 
-            white-space: nowrap;
-            overflow: hidden;
-            border-right: 2px solid transparent;
-            
-            /* 초기 상태는 완전히 숨김 */
-            opacity: 0;
-            visibility: hidden;
+        /* 호버 애니메이션 효과 */
+        .choice-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: #e2e2e2;
         }
 
-        @media (max-width: 768px) {
-            .line { font-size: 1.1rem; }
+        .card-info {
+            text-align: left;
         }
 
-        /* 
-           [타임라인 가이드]
-           이전 코드에서 가장 완성도 높았던 원본 타이핑(typing) 키프레임 방식을 그대로 적용하고,
-           전체 줄이 교체되는 순간에만 상단 부모 클래스로 제어하여 어색함을 없앴습니다.
-        */
-
-        /* 첫 번째 줄: 태어나줘서 고마워, 진심으로. (글자수 12자 / 4.1초 ~ 7.1초 노출) */
-        body.is-active .line-1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: #fff;
-            animation: 
-                lineShowHide 3.0s linear 4.1s forwards,
-                typing1 1.3s steps(12) 4.1s forwards,
-                cursor-blink 0.65s step-end 4.1s 2;
-        }
-        @media (max-width: 768px) { body.is-active .line-1 { font-size: 1.6rem; } }
-
-        /* 두 번째 줄: 수많은 계절이 소리 없이 흘러가도 (글자수 19자 / 7.2초 ~ 10.4초 노출) */
-        body.is-active .line-2 {
-            animation: 
-                lineShowHide 3.2s linear 7.2s forwards,
-                typing2 1.6s steps(19) 7.2s forwards,
-                cursor-blink 0.55s step-end 7.2s 3;
+        .card-info h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #222222;
+            margin-bottom: 4px;
         }
 
-        /* 세 번째 줄: 내 가장 아름다운 문장 속엔 늘 네가 있어. (글자수 24자 / 10.5초 ~ 13.9초 노출) */
-        body.is-active .line-3 {
-            animation: 
-                lineShowHide 3.4s linear 10.5s forwards,
-                typing3 1.8s steps(24) 10.5s forwards,
-                cursor-blink 0.6s step-end 10.5s 3;
+        .card-info p {
+            font-size: 0.85rem;
+            color: #888888;
         }
 
-        /* 네 번째 줄: 오늘만큼은 세상에서 가장 다정하길. (글자수 20자 / 14.0초 ~ 무한 유지) */
-        body.is-active .line-4 {
-            animation: 
-                lineStay 2.0s linear 14.0s forwards,
-                typing4 1.7s steps(20) 14.0s forwards,
-                cursor-infinite 0.75s step-end 14.0s infinite;
+        .card-icon {
+            font-size: 1.2rem;
+            color: #b0b0b0;
+            transition: transform 0.25s ease, color 0.25s ease;
         }
 
-
-        /* ==========================================
-           [타이핑 및 노출 제어 키프레임 프리셋]
-           ========================================== */
-        
-        /* 이전의 부드러웠던 순수 가로폭 증가(Typing) 모션 복구 */
-        @keyframes typing1 { from { width: 0; } to { width: 17em; max-width: 100%; } }
-        @keyframes typing2 { from { width: 0; } to { width: 23em; max-width: 100%; } }
-        @keyframes typing3 { from { width: 0; } to { width: 28em; max-width: 100%; } }
-        @keyframes typing4 { from { width: 0; } to { width: 23em; max-width: 100%; } }
-
-        /* 한 줄이 투명하게 피었다가 부드럽게 퇴장하는 전체 연출 */
-        @keyframes lineShowHide {
-            0% { opacity: 0; visibility: visible; }
-            10% { opacity: 1; transform: translateY(0); }
-            90% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-8px); visibility: hidden; } /* 위로 깔끔하게 사라짐 */
-        }
-
-        /* 마지막 라인 전용 (사라지지 않고 고정) */
-        @keyframes lineStay {
-            0% { opacity: 0; visibility: visible; }
-            100% { opacity: 1; visibility: visible; transform: translateY(0); }
-        }
-
-        /* 커서 눈 깜빡임 제어 */
-        @keyframes cursor-blink {
-            from, to { border-right-color: transparent; }
-            50% { border-right-color: #fff; }
-        }
-        @keyframes cursor-infinite {
-            from, to { border-right-color: transparent; }
-            50% { border-right-color: #fff; }
+        .choice-card:hover .card-icon {
+            color: #111111;
+            transform: translateX(4px);
         }
     </style>
 </head>
 <body>
-    
-    <!-- [오디오 소스] 넷플릭스/애플 스타일의 프리미엄 저음 쿵 사운드 -->
-    <audio id="introAudio" src="https://mixkit.co" preload="auto"></audio>
 
-    <!-- [0단계] 첫 화면 (준비됐나요? 대기 화면) -->
-    <div class="start-screen" id="startScreen">
-        <h1 class="start-title">준비됐나요?</h1>
-        <button class="start-btn" onclick="startIntro()">시작하기</button>
+    <div class="container">
+        <header>
+            <h1>WELCOME</h1>
+            <p>이동할 페이지를 선택해 주세요.</p>
+        </header>
+
+        <main class="choice">
+            <!-- 편지 페이지 링크 -->
+            <a href="message_test.html" class="choice-card">
+                <div class="card-info">
+                    <h3>편지</h3>
+                    <p>메시지 확인하기</p>
+                </div>
+                <span class="card-icon">&rarr;</span>
+            </a>
+
+            <!-- 책 뷰어 페이지 링크 -->
+            <a href="book_webview.html" class="choice-card">
+                <div class="card-info">
+                    <h3>책 뷰어</h3>
+                    <p>도서 뷰어 이동하기</p>
+                </div>
+                <span class="card-icon">&rarr;</span>
+            </a>
+        </main>
     </div>
 
-    <!-- 인트로 및 전체 편지 콘텐츠 컨테이너 -->
-    <div class="intro-container">
-        <!-- [1파트] 질문 던지기 -->
-        <span class="word q1">지금</span>
-        <span class="word q2">생각나는</span>
-        <span class="word q3">사람이</span>
-        <span class="word q4">있나요?</span>
-
-        <!-- [2파트] 연결되는 답변 문구 -->
-        <span class="word w1">그 시절</span>
-        <span class="word w2">그 거리</span>
-        <span class="word w3">그리고</span>
-        <span class="word w4">당신</span>
-
-        <!-- [3파트] 타이핑 편지 영역 -->
-        <div class="full-message-box">
-            <span class="line line-1">생일 축하해! ✨</span>
-            <span class="line line-2">언제나 내 가장 소중한 기억 속에</span>
-            <span class="line line-3">기적처럼 함께해 줘서 고마워.</span>
-            <span class="line line-4">오늘 너의 하루가 가장 빛나기를 바랄게.</span>
-        </div>
-    </div>
-
-    <!-- 간단한 인터랙션 제어 자바스크립트 -->
-    <script>
-        function startIntro() {
-            // 버튼 클릭 시 body에 클래스를 추가하여 숨겨진 전체 CSS 애니메이션을 일제히 트리거합니다.
-            document.body.classList.add('is-active');
-        }
-    </script>
 </body>
 </html>

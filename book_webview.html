@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andersen Interactive Digital Library</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+KR:wght@300;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Serif KR', serif;
+            background: linear-gradient(135deg, #090d16 0%, #111827 100%);
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        .serif-en { font-family: 'Cinzel', serif; }
+        
+        .library-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('/1002/images/jeremy-thomas-E0AHdsENmDg-unsplash.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.8;
+            /* mix-blend-mode: overlay; */ 
+            pointer-events: none;
+            z-index: 2;
+            transition: opacity 0.6s ease;
+        }
+
+        /* --- [서재 전용 스타일] --- */
+        .wood-shelf {
+            background: linear-gradient(to bottom, #4a2c11 0%, #351c07 100%);
+            box-shadow: inset 0 4px 6px rgba(0,0,0,0.6), 0 8px 16px rgba(0,0,0,0.8);
+            border-bottom: 8px solid #241203;
+            position: relative;
+        }
+        .wood-shelf::after {
+            content: '';
+            position: absolute;
+            bottom: -16px; left: 0; right: 0; height: 8px;
+            background: rgba(0,0,0,0.4);
+            filter: blur(4px);
+        }
+        .book-item {
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            transform-origin: bottom center;
+        }
+        .book-item:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 10px 10px -5px rgba(0, 0, 0, 0.7);
+        }
+
+        /* --- [3D 웹뷰어 스테이지 & 고정 척추축] --- */
+        .stage {
+            perspective: 2200px;
+            position: relative;
+        }
+
+        /* 확장된 책 크기 (가로 1000px, 세로 680px) */
+        .book-container {
+            position: fixed;
+            left: 50%;
+            top: 45%;
+            transform: translate(-50%, -50%);
+            width: 1000px;
+            height: 680px;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease;
+        }
+
+        /* 낱개 페이지 (가로 500px, 척추 중심선 고정) */
+        .sheet {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 500px;
+            height: 100%;
+            transform-style: preserve-3d;
+            transform-origin: left center;
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            pointer-events: none;
+        }
+
+        .page-face {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            box-shadow: inset 0px 0px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* 뒤집히는 왼쪽 페이지 기준점 및 라운딩 설정 */
+        .page-back {
+            transform: rotateY(180deg);
+            border-radius: 0.75rem 0 0 0.75rem !important;
+        }
+
+        /* 오른쪽에 고정되는 페이지 라운딩 설정 */
+        .page-face:not(.page-back) {
+            border-radius: 0 0.75rem 0.75rem 0 !important;
+        }
+
+        .spine-shadow-left {
+            background: linear-gradient(to right, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0) 100%);
+        }
+        .spine-shadow-right {
+            background: linear-gradient(to left, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0) 100%);
+        }
+        .active-click {
+            pointer-events: auto !important;
+            cursor: pointer;
+        }
+
+        /* 배경 날씨 캔버스 고정 레이어 */
+        #weather-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .ui-layer {
+            position: relative;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-100 flex flex-col justify-between">
+
+    <!-- 배경 애니메이션 캔버스 -->
+    <canvas id="weather-canvas"></canvas>
+
+    <!-- 고급 서재 전용 배경 스킨 레이어 -->
+    <div id="library-backdrop" class="library-bg"></div>
+
+    <!-- ========================================================
+         SECTION 1: 가상 서재 스크린
+         ======================================================== -->
+    <div id="library-screen" class="ui-layer w-full max-w-5xl mx-auto px-6 py-12 transition-opacity duration-500">
+        <header class="text-center mb-16">
+            <h1 class="serif-en text-4xl md:text-5xl font-bold tracking-widest text-amber-400 mb-3">ANDERSEN'S ROOM</h1>
+            <p class="text-sm md:text-base text-slate-400 tracking-wider">안데르센 명작 동화 상상 서재</p>
+            <div class="w-24 h-1 bg-amber-500 mx-auto mt-4 rounded-full opacity-60"></div>
+        </header>
+
+        <div class="space-y-16">
+            <div>
+                <div class="grid grid-cols-3 gap-6 md:gap-12 px-4 md:px-12 items-end">
+                    <!-- 도서 1: 성냥팔이 소녀 -->
+                    <div onclick="openBook('matchgirl')" class="book-item cursor-pointer flex flex-col items-center">
+                        <div class="w-32 h-48 md:w-40 md:h-60 bg-gradient-to-b from-slate-900 to-indigo-950 border-2 border-amber-500/40 rounded-r-md flex flex-col justify-between shadow-2xl relative overflow-hidden">
+                            <img id="thumb-matchgirl" src="" alt="성냥팔이 소녀 표지" class="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none z-0">
+                            <div class="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-amber-400/20 z-10"></div>
+                            <div class="text-center mt-4 z-10 relative">
+                                <span class="text-[10px] text-amber-400/70 tracking-widest serif-en block mb-1">ANDERSEN</span>
+                                <h3 class="text-xs md:text-sm font-bold text-amber-100 tracking-tight leading-snug drop-shadow">성냥팔이 소녀</h3>
+                            </div>
+                            <div class="flex justify-center mb-4 z-10 relative"><span class="text-amber-500 text-xl animate-pulse">🔥</span></div>
+                        </div>
+                        <p class="text-xs mt-3 text-slate-300 font-medium">성냥팔이 소녀</p>
+                    </div>
+
+                    <!-- 도서 2: 인어공주 -->
+                    <div onclick="openBook('mermaid')" class="book-item cursor-pointer flex flex-col items-center">
+                        <div class="w-32 h-48 md:w-40 md:h-60 bg-gradient-to-b from-teal-950 to-slate-900 border-2 border-cyan-500/40 rounded-r-md flex flex-col justify-between shadow-2xl relative overflow-hidden">
+                            <img id="thumb-mermaid" src="" alt="인어공주 표지" class="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none z-0">
+                            <div class="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-cyan-400/20 z-10"></div>
+                            <div class="text-center mt-4 z-10 relative">
+                                <span class="text-[10px] text-cyan-400/70 tracking-widest serif-en block mb-1">ANDERSEN</span>
+                                <h3 class="text-xs md:text-sm font-bold text-cyan-100 tracking-tight leading-snug drop-shadow">인어공주</h3>
+                            </div>
+                            <div class="flex justify-center mb-4 z-10 relative"><span class="text-cyan-400 text-xl animate-pulse">💧</span></div>
+                        </div>
+                        <p class="text-xs mt-3 text-slate-300 font-medium">인어공주</p>
+                    </div>
+
+                    <!-- 도서 3: 미운 오리 새끼 -->
+                    <div onclick="openBook('duckling')" class="book-item cursor-pointer flex flex-col items-center">
+                        <div class="w-32 h-48 md:w-40 md:h-60 bg-gradient-to-b from-emerald-950 to-slate-900 border-2 border-emerald-600/40 rounded-r-md flex flex-col justify-between shadow-2xl relative overflow-hidden">
+                            <img id="thumb-duckling" src="" alt="미운 오리 새끼 표지" class="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none z-0">
+                            <div class="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-emerald-400/20 z-10"></div>
+                            <div class="text-center mt-4 z-10 relative">
+                                <span class="text-[10px] text-emerald-400/70 tracking-widest serif-en block mb-1">ANDERSEN</span>
+                                <h3 class="text-xs md:text-sm font-bold text-emerald-100 tracking-tight leading-snug drop-shadow">미운 오리 새끼</h3>
+                            </div>
+                            <div class="flex justify-center mb-4 z-10 relative"><span class="text-emerald-500 text-xl animate-pulse">🪶</span></div>
+                        </div>
+                        <p class="text-xs mt-3 text-slate-300 font-medium">미운 오리 새끼</p>
+                    </div>
+                </div>
+                <!-- 원목 책장 받침대 -->
+                <div class="wood-shelf h-5 w-full rounded-md mt-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         SECTION 2: 3D 웹뷰어 스크린 (기본 숨김)
+         ======================================================== -->
+    <div id="viewer-screen" class="ui-layer hidden w-full flex-1 flex flex-col justify-between opacity-0 transition-opacity duration-500 relative">
+        
+        <!-- 상단 내비게이션 바 -->
+        <header class="w-full max-w-6xl mx-auto px-6 py-4 flex justify-between items-center z-50">
+            <button onclick="closeBook()" class="group flex items-center gap-2 bg-slate-800/80 hover:bg-amber-600/90 border border-slate-700 hover:border-amber-400 text-slate-300 hover:text-white px-4 py-2 rounded-full text-xs font-medium tracking-wider transition-all shadow-lg backdrop-blur-sm">
+                <span class="group-hover:-translate-x-1 transition-transform">←</span> 서재로 돌아가기
+            </button>
+            <div class="text-right">
+                <h2 id="viewer-title" class="text-xs font-bold text-amber-400 tracking-widest serif-en">ANDERSEN COLLECTION</h2>
+            </div>
+        </header>
+
+        <!-- 3D 북 무대 영역 -->
+        <main class="stage flex-1 w-full relative flex items-center justify-center py-6">
+            <div id="book" class="book-container">
+            </div>
+        </main>
+
+        <!-- 하단 컨트롤러 -->
+        <footer class="w-full max-w-xl mx-auto px-6 py-6 z-50">
+            <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-full px-4 py-2 shadow-2xl backdrop-blur-md">
+                <button onclick="prevPage()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-colors">&larr; Prev</button>
+                <div class="flex items-center gap-2">
+                    <span id="theme-icon" class="text-sm">🔥</span>
+                    <span id="page-indicator" class="text-xs font-medium text-slate-400 tracking-widest serif-en">SHEET 0 / 0</span>
+                </div>
+                <button onclick="nextPage()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-colors">Next &rarr;</button>
+            </div>
+        </footer>
+    </div>
+
+    <footer class="w-full text-center py-4 text-[10px] text-slate-600 tracking-widest serif-en z-10">
+        © 2026 DIGITAL BOOKSHELF LAB. ALL RIGHTS RESERVED.
+    </footer>
+
+    <script>
+        const bookData = {
+            matchgirl: {
+                title: "성냥팔이 소녀",
+                subTitle: "Andersen 단편선",
+                author: "김선희 역",
+                symbol: "🔥",
+                coverImage: "https://i.namu.wiki/i/mXsJQPE7CXUfhgq7wcPjX4mrgo7RQzZ4PaALdkna1-BcJb_92KID6_-MfL5lcbvVKLA6U5GR0NGcrwoihZtrwuSIcq4wW-dYHBQDXJYo_A8Pcs6aIatKS8o8GoTqYZgLCfPJeA0H1T0XRqYiOAeZ7Q.webp",
+                themeClass: "from-slate-900 via-slate-950 to-indigo-950",
+                borderColor: "border-amber-500/30",
+                weather: "snow",
+                bgGradient: "linear-gradient(135deg, #090d16 0%, #111827 100%)", 
+                pages: [
+                    "지독히도 추운 날이었다. 눈이 내리고 어둠이 찾아왔다. 그해의 마지막 저녁이었다. 한 가엾은 소녀가 모자도 쓰지 않고 맨발로 춥고 우울하게 거리를 걷고 있다. 물론 집을 나설 때 신발을 신고 있었지만 지금은 아무 소용이 없었다.",
+                    "신발은 엄마의 것이었기에 소녀에게 너무 컸다. 어린 소녀는 길을 뛰어 건너다가 신발 한 짝을 잃어버렸는데 마차 두 대가 덜컹거리며 엄청나게 빨리 지나가는 바람에 신발을 다시 찾을 수 없었다.",
+                    "한 소년이 나중에 아이를 낳으면 요람으로 쓰겠다면서 나머지 한 짝을 가지고 달아나버렸다. 그래서 어린 소녀는 맨발로 걷고 있었다. 두 발은 꽁꽁 얼어 울긋불긋했다. 낡은 앞치마에 들고 가는 성냥갑 몇 개가 있었다.",
+                    "소녀는 성냥 하나를 손으로 들어 내밀었다. 하지만 하루 종일 소녀한테 성냥을 사려는 사람은 아무도 없었다. 단 한 사람도 1센트를 주지 않았다. 추위와 배고픔으로 벌벌 떨면서 소녀는 기어갔다.",
+                    "집 두 채 사이 모퉁이에 다른 집보다 길 쪽으로 더 튀어나온 곳이 있었는데 소녀는 그곳에 앉아서 발을 끌어당겨 몸을 웅크렸다. 점점 더 몸이 추웠다. 하지만 집에 갈 엄두가 나지 않았다.",
+                    "<div class='p-4 bg-amber-50 border-l-4 border-amber-500 rounded-lg text-sm text-amber-900 font-medium mb-2'>치지직! 성냥은 탁 소리를 내며 타올랐다!</div> 온기를 주며 작은 초처럼 환한 불꽃을 일으켰다. 소녀가 그 불꽃 위로 손을 올리자, 이상한 빛이 일었다!",
+                    "소녀는 성냥을 하나 더 밝혔다. 아름다운 크리스마스트리 아래 앉아 있는 것 같았다. 수천 개의 초가 활활 타올랐다. 크리스마스 불빛은 더 높이 올라가 하늘의 별처럼 보였다.",
+                    "<div class='text-center py-6 text-stone-600 font-medium'><p class='mb-2 text-xl font-bold text-amber-900'>Fin</p><p class='text-sm leading-relaxed'>누구보다 소녀를 사랑했던 할머니가 환한 불꽃 속에 서 있었다. 할머니는 소녀를 품에 안고 추위도 배고픔도 없는 하늘 높이 날아올랐다.</p></div>"
+                ],
+                illustrations: [
+                     "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1483664852095-d6cc6870702d?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1513297887119-d46091b24bfa?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1543589077-47d513165776?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=800&auto=format&fit=crop"
+                ]
+            },
+            mermaid: {
+                title: "인어공주",
+                subTitle: "The Little Mermaid",
+                author: "안데르센 원작",
+                symbol: "💧",
+                coverImage: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ_RaVl9M0VK4FBfyRayokmHAlJxw93iKk9F7B2uyBm6w&s=10",
+                themeClass: "from-teal-950 via-slate-950 to-cyan-950",
+                borderColor: "border-cyan-500/30",
+                weather: "bubble",
+                bgGradient: "linear-gradient(135deg, #05141c 0%, #0b1f2d 100%)",
+                pages: [
+                    "바다 멀리 나가면 물빛이 가장 아름다운 수레국화 꽃잎처럼 파랗고 유리창처럼 맑다. 그 가장 깊은 곳에 바다 왕의 궁전이 있었다.",
+                    "막내 공주가 가장 아름다웠다. 그녀의 피부는 장미꽃잎처럼 맑고 부드러웠으며 눈은 깊은 바다처럼 파랬다.",
+                    "막내 공주가 열다섯 살이 되던 해, 바다 위로 솟아올랐다. 바다 위에는 거대한 배가 떠 있었고 아름다운 젊은 왕자를 보았다.",
+                    "그날 밤 무서운 폭풍우가 몰아쳐 배가 가라앉았다. 인어 공주는 바다에 빠진 왕자를 구하기 위해 헤엄쳐 갔다.",
+                    "공주는 기절한 왕자를 안고 모래사장 위 안전한 곳에 눕혀두고, 바위 뒤로 숨어 왕자를 지켜보았다.",
+                    "왕자를 향한 그리움이 깊어지자, 공주는 깊고 험한 모퉁이에 사는 바다 마녀를 찾아가 다리를 얻기로 결심했다.",
+                    "<div class='text-center py-6 text-stone-600 font-medium'><p class='mb-2 text-xl font-bold text-cyan-900'>Fin</p><p class='text-sm leading-relaxed'>공주는 슬픈 눈으로 바다를 바라보며, 새벽빛과 함께 부드러운 바다의 물거품으로 변해 승천했다.</p></div>"
+                ],
+                illustrations: [
+                    "https://images.unsplash.com/photo-1682687982501-1e58ab814714?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1518837695005-2083093ee35b?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?q=80&w=800&auto=format&fit=crop"
+                ]
+            },
+            duckling: {
+                title: "미운 오리 새끼",
+                subTitle: "The Ugly Duckling",
+                author: "안데르센 원작",
+                symbol: "🪶",
+                coverImage: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAdieeZ1Keev_iHEvS6iFintqsRkWLguwWZ0uffEcmoQ&s=10",
+                themeClass: "from-emerald-950 via-slate-950 to-stone-900",
+                borderColor: "border-emerald-600/30",
+                weather: "feather",
+                bgGradient: "linear-gradient(135deg, #06120e 0%, #111c16 100%)",
+                pages: [
+                    "시골의 여름은 참으로 아름다웠다. 밀밭은 황금빛으로 물들고 귀리는 초록빛을 띠었다. 우엉 잎사귀 아래 엄마 오리가 알을 품고 있었다.",
+                    "마침내 거대한 알이 깨졌고, 회색빛의 유독 크고 못생긴 새끼 오리가 밖으로 기어 나왔다.",
+                    "농장 마당의 다른 동물들은 미운 오리 새끼를 보자마자 비웃고 괴롭혔다. 오리는 울타리를 넘어 넓은 늪지대로 도망쳤다.",
+                    "혹독한 겨울이 찾아왔다. 얼어붙는 호수 위에서 지친 새끼 오리는 눈과 얼음 속에 갇히고 말았다.",
+                    "마침내 따뜻한 태양이 비추고 종달새가 노래하는 아름다운 봄이 찾아왔다. 오리는 날개를 활짝 폈다.",
+                    "<div class='text-center py-6 text-stone-600 font-medium'><p class='mb-2 text-xl font-bold text-emerald-900'>Fin</p><p class='text-sm leading-relaxed'>물에 비친 자신을 본 오리는 깜짝 놀랐다. 그것은 더 이상 회색 오리가 아니라 세상에서 가장 아름다운 백조였다.</p></div>"
+                ],
+                illustrations: [
+                    "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1483664852095-d6cc6870702d?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?q=80&w=800&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1516570161787-2fd96222ed70?q=80&w=800&auto=format&fit=crop"
+                ]
+            }
+        };
+
+        // 초기 서재 썸네일 세팅
+        window.addEventListener('DOMContentLoaded', () => {
+            if(bookData.matchgirl.coverImage) document.getElementById('thumb-matchgirl').src = bookData.matchgirl.coverImage;
+            if(bookData.mermaid.coverImage) document.getElementById('thumb-mermaid').src = bookData.mermaid.coverImage;
+            if(bookData.duckling.coverImage) document.getElementById('thumb-duckling').src = bookData.duckling.coverImage;
+        });
+
+        let currentSheet = 0;
+        let totalSheets = 0;
+        let activeSheets = [];
+        let animationFrameId = null;
+
+        const canvas = document.getElementById('weather-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function openBook(bookId) {
+            const selectedBook = bookData[bookId];
+            if (!selectedBook) return;
+
+            document.body.style.background = selectedBook.bgGradient;
+            document.getElementById('viewer-title').innerText = `${selectedBook.title} - ${selectedBook.subTitle}`;
+            document.getElementById('theme-icon').innerText = selectedBook.symbol;
+
+            buildBookDOM(selectedBook);
+
+            const shelf = document.getElementById('library-screen');
+            const viewer = document.getElementById('viewer-screen');
+            
+            shelf.classList.add('opacity-0');
+            setTimeout(() => {
+                shelf.classList.add('hidden');
+                viewer.classList.remove('hidden');
+                setTimeout(() => {
+                    viewer.classList.remove('opacity-0');
+                    currentSheet = 0;
+                    activeSheets = document.querySelectorAll('.sheet');
+                    totalSheets = activeSheets.length;
+                    updateInteraction();
+                    startWeather(selectedBook.weather);
+                }, 50);
+            }, 500);
+        }
+
+        function closeBook() {
+            const shelf = document.getElementById('library-screen');
+            const viewer = document.getElementById('viewer-screen');
+            
+            viewer.classList.add('opacity-0');
+            setTimeout(() => {
+                viewer.classList.add('hidden');
+                shelf.classList.remove('hidden');
+                setTimeout(() => {
+                    shelf.classList.remove('opacity-0');
+                    document.body.style.background = "linear-gradient(135deg, #090d16 0%, #111827 100%)";
+                    stopWeather();
+                }, 50);
+            }, 500);
+        }
+
+        // [동적 북 DOM 생성] - 왼쪽: 텍스트 / 오른쪽: 삽화
+        function buildBookDOM(book) {
+            const bookContainer = document.getElementById('book');
+            bookContainer.innerHTML = '';
+
+            const pages = book.pages;
+            const illustrations = book.illustrations;
+            let htmlStr = '';
+
+            const coverImgHTML = book.coverImage 
+                ? `<img src="${book.coverImage}" class="absolute inset-0 w-full h-full object-cover opacity-25 pointer-events-none z-0">` 
+                : '';
+
+            // Sheet 1: 표지 + 첫 텍스트 페이지
+            htmlStr += `
+            <div class="sheet">
+                <div class="page-face bg-gradient-to-b ${book.themeClass} border-y border-r ${book.borderColor} flex flex-col justify-between p-10 text-center relative overflow-hidden">
+                    ${coverImgHTML}
+                    <div class="border-2 border-amber-500/20 w-full h-full flex flex-col justify-between p-8 relative z-10">
+                        <div class="absolute top-3 right-3 w-10 h-10 border-t-2 border-r-2 border-amber-400/30"></div>
+                        <span class="serif-en text-amber-500/80 text-sm tracking-[0.3em] font-semibold mt-2">[ ${book.subTitle} ]</span>
+                        <div class="my-auto space-y-4">
+                            <h1 class="text-4xl md:text-5xl font-extrabold text-amber-100 tracking-wide drop-shadow-lg">${book.title}</h1>
+                            <p class="text-sm md:text-base text-slate-300 tracking-widest mt-3">${book.author}</p>
+                        </div>
+                        <div class="mb-2 space-y-3">
+                            <div class="text-amber-500 text-3xl animate-pulse">${book.symbol}</div>
+                            <span class="text-xs text-slate-300 tracking-widest block bg-slate-900/70 py-2.5 px-4 rounded-lg border border-slate-700/80 backdrop-blur-sm">화면이나 버튼을 클릭하여 책을 넘겨보세요</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-face page-back bg-[#fdfaf2] text-slate-800 p-12 flex flex-col justify-between border-y border-r border-stone-300">
+                    <div class="spine-shadow-left absolute top-0 left-0 w-12 h-full z-10"></div>
+                    <article class="text-base md:text-lg leading-relaxed text-justify space-y-4 font-normal text-stone-900">
+                        <p class="font-bold text-amber-900 text-xl mb-4 border-b pb-2 border-amber-900/20">〈 ${book.title} 〉</p>
+                        <p>${pages[0]}</p>
+                    </article>
+                    <span class="text-xs text-stone-400 text-left serif-en font-semibold">1</span>
+                </div>
+            </div>`;
+
+            // 본문 순회: (오른쪽: 이전 텍스트의 삽화 / 왼쪽: 다음 텍스트)
+            for (let i = 0; i < pages.length - 1; i++) {
+                const currentIllust = illustrations[i] || illustrations[0];
+                const nextText = pages[i+1];
+
+                htmlStr += `
+                <div class="sheet">
+                    <div class="page-face bg-stone-100 flex items-center justify-center border-y border-r border-stone-300 relative overflow-hidden">
+                        <div class="spine-shadow-right absolute top-0 right-0 w-12 h-full z-10"></div>
+                        <img src="${currentIllust}" alt="삽화" class="w-full h-full object-cover">
+                    </div>
+                    <div class="page-face page-back bg-[#fdfaf2] text-slate-800 p-12 flex flex-col justify-between border-y border-r border-stone-300">
+                        <div class="spine-shadow-left absolute top-0 left-0 w-12 h-full z-10"></div>
+                        <article class="text-base md:text-lg leading-relaxed text-justify space-y-4 text-stone-900">
+                            <p>${nextText}</p>
+                        </article>
+                        <span class="text-xs text-stone-400 text-left serif-en font-semibold">${i + 2}</span>
+                    </div>
+                </div>`;
+            }
+
+            // 마지막 엔딩 Sheet (오른쪽 마지막 삽화 + 뒷표지)
+            const lastIllust = illustrations[illustrations.length - 1];
+            htmlStr += `
+            <div class="sheet">
+                <div class="page-face bg-stone-100 flex items-center justify-center border-y border-r border-stone-300 relative overflow-hidden">
+                    <div class="spine-shadow-right absolute top-0 right-0 w-12 h-full z-10"></div>
+                    <img src="${lastIllust}" alt="마지막 삽화" class="w-full h-full object-cover">
+                </div>
+                <div class="page-face page-back bg-gradient-to-b ${book.themeClass} border-y border-l ${book.borderColor} flex flex-col justify-between p-10 text-center">
+                    <div class="border-2 border-amber-500/20 w-full h-full flex flex-col justify-center p-8 relative">
+                        <div class="absolute top-3 left-3 w-10 h-10 border-t-2 border-l-2 border-amber-400/30"></div>
+                        <h2 class="serif-en text-amber-500/50 text-2xl tracking-[0.4em] mb-3 font-bold">THE END</h2>
+                        <p class="text-xs text-slate-400 tracking-wider">Digital Masterpiece Collection</p>
+                    </div>
+                </div>
+            </div>`;
+
+            bookContainer.innerHTML = htmlStr;
+        }
+
+        function updateInteraction() {
+            activeSheets.forEach((sheet, index) => {
+                const frontFace = sheet.querySelector('.page-face:not(.page-back)');
+                const backFace = sheet.querySelector('.page-face.page-back');
+
+                if (index < currentSheet) {
+                    sheet.style.transform = "rotateY(-180deg)";
+                    sheet.style.zIndex = index + 1;
+                    
+                    if(frontFace) frontFace.classList.remove('active-click');
+                    if(backFace) backFace.classList.add('active-click');
+                } else {
+                    sheet.style.transform = "rotateY(0deg)";
+                    sheet.style.zIndex = totalSheets - index;
+
+                    if(frontFace) frontFace.classList.add('active-click');
+                    if(backFace) backFace.classList.remove('active-click');
+                }
+            });
+
+            document.querySelectorAll('.active-click').forEach(face => {
+                face.onclick = function(e) {
+                    e.stopPropagation();
+                    if (this.classList.contains('page-back')) {
+                        prevPage();
+                    } else {
+                        nextPage();
+                    }
+                };
+            });
+
+            document.getElementById('page-indicator').innerText = `SHEET ${currentSheet} / ${totalSheets}`;
+        }
+
+        function nextPage() {
+            if (currentSheet < totalSheets) {
+                currentSheet++;
+                updateInteraction();
+            }
+        }
+
+        function prevPage() {
+            if (currentSheet > 0) {
+                currentSheet--;
+                updateInteraction();
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            const viewer = document.getElementById('viewer-screen');
+            if (!viewer.classList.contains('hidden')) {
+                if (e.key === 'ArrowRight') nextPage();
+                if (e.key === 'ArrowLeft') prevPage();
+                if (e.key === 'Escape') closeBook();
+            }
+        });
+
+        // 배경 파티클 파티클 효과 (눈/방울/깃털)
+        function startWeather(type) {
+            stopWeather();
+            particles = [];
+            let maxParticles = 60;
+
+            if (type === 'snow') {
+                for (let i = 0; i < maxParticles; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        r: Math.random() * 3 + 1,
+                        d: Math.random() * 1 + 0.5,
+                        v: Math.random() * 1 - 0.5
+                    });
+                }
+            } else if (type === 'bubble') {
+                for (let i = 0; i < maxParticles; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: canvas.height + Math.random() * 100,
+                        r: Math.random() * 5 + 2,
+                        speed: Math.random() * 1.5 + 0.5,
+                        wobble: Math.random() * 0.02,
+                        wobbleAmt: Math.random() * 2
+                    });
+                }
+            } else if (type === 'feather') {
+                for (let i = 0; i < 30; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        w: Math.random() * 12 + 6,
+                        h: Math.random() * 4 + 2,
+                        speedX: Math.random() * 1 + 0.5,
+                        speedY: Math.random() * 0.5 + 0.2,
+                        angle: Math.random() * Math.PI
+                    });
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (type === 'snow') {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+                    ctx.beginPath();
+                    for (let i = 0; i < particles.length; i++) {
+                        let p = particles[i];
+                        ctx.moveTo(p.x, p.y);
+                        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+
+                        p.y += p.d;
+                        p.x += p.v;
+
+                        if (p.y > canvas.height) {
+                            particles[i] = { x: Math.random() * canvas.width, y: -10, r: p.r, d: p.d, v: p.v };
+                        }
+                    }
+                    ctx.fill();
+                } else if (type === 'bubble') {
+                    ctx.strokeStyle = 'rgba(103, 232, 249, 0.4)';
+                    ctx.fillStyle = 'rgba(103, 232, 249, 0.08)';
+                    for (let i = 0; i < particles.length; i++) {
+                        let p = particles[i];
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+                        ctx.stroke();
+                        ctx.fill();
+
+                        p.y -= p.speed;
+                        p.x += Math.sin(p.wobbleAmt) * 0.4;
+                        p.wobbleAmt += p.wobble;
+
+                        if (p.y < -20) {
+                            particles[i] = { x: Math.random() * canvas.width, y: canvas.height + 20, r: p.r, speed: p.speed, wobble: p.wobble, wobbleAmt: p.wobbleAmt };
+                        }
+                    }
+                } else if (type === 'feather') {
+                    ctx.fillStyle = 'rgba(209, 250, 229, 0.35)';
+                    for (let i = 0; i < particles.length; i++) {
+                        let p = particles[i];
+                        ctx.save();
+                        ctx.translate(p.x, p.y);
+                        ctx.rotate(p.angle);
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, p.w, p.h, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+
+                        p.x += p.speedX;
+                        p.y += p.speedY;
+                        p.angle += 0.01;
+
+                        if (p.x > canvas.width || p.y > canvas.height) {
+                            particles[i] = { x: -20, y: Math.random() * canvas.height, w: p.w, h: p.h, speedX: p.speedX, speedY: p.speedY, angle: p.angle };
+                        }
+                    }
+                }
+                animationFrameId = requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        function stopWeather() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    </script>
+</body>
+</html>
