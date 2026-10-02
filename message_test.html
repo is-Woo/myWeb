@@ -12,7 +12,7 @@
             padding: 0;
         }
         body {
-            background-color: #000; /* 깊은 블랙 톤 유지 */
+            background-color: #000;
             color: #fff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             font-weight: 900;
@@ -22,6 +22,17 @@
             height: 100vh;
             overflow: hidden;
             letter-spacing: -0.05em;
+        }
+
+        /* 폭죽 캔버스 레이어 */
+        #fireworksCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
         }
 
         /* ==========================================
@@ -62,13 +73,11 @@
             transform: scale(0.98);
         }
 
-        /* 모바일 대응 */
         @media (max-width: 768px) {
             .start-title { font-size: 2.2rem; }
             .start-btn { padding: 12px 28px; font-size: 1rem; }
         }
 
-        /* 버튼이 클릭되면 첫 화면을 전면 숨김 */
         body.is-active .start-screen {
             opacity: 0;
             visibility: hidden;
@@ -87,7 +96,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            visibility: hidden; /* 초기엔 숨김 */
+            visibility: hidden;
+            z-index: 2;
         }
 
         @media (max-width: 768px) {
@@ -104,29 +114,22 @@
             white-space: nowrap;
         }
 
-        /* ==========================================
-           [클릭 후 실행] body.is-active 상태일 때만 애니메이션 작동
-           ========================================== */
         body.is-active .intro-container {
             visibility: visible;
         }
 
-        /* 1파트: 질문 (클릭 후 즉시 0.1초~1.7초) */
+        /* 1파트: 질문 */
         body.is-active .q1 { animation: popText 0.4s ease-out 0.1s forwards; }
         body.is-active .q2 { animation: popText 0.4s ease-out 0.5s forwards; }
         body.is-active .q3 { animation: popText 0.4s ease-out 0.9s forwards; }
         body.is-active .q4 { animation: popText 0.4s ease-out 1.3s forwards; }
 
-        /* 2파트: 감성 문구 (1.9초 ~ 3.9초) */
+        /* 2파트: 감성 문구 */
         body.is-active .w1 { animation: popText 0.4s ease-out 1.9s forwards; }
         body.is-active .w2 { animation: popText 0.4s ease-out 2.3s forwards; }
         body.is-active .w3 { animation: popText 0.4s ease-out 2.7s forwards; }
         body.is-active .w4 { animation: finalZoom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 3.1s forwards; }
 
-
-        /* ==========================================
-           [애니메이션 키프레임] 애플 특유의 타격감
-           ========================================== */
         @keyframes popText {
             0% { transform: translate(-50%, -50%) scale(1.7); opacity: 0; filter: blur(8px); }
             15% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; filter: blur(0px); }
@@ -141,8 +144,8 @@
             100% { transform: translate(-50%, -50%) scale(5); opacity: 0; visibility: hidden; }
         }
 
-         /* ==========================================
-           [3단계] 복구된 정중앙 교체형 타이핑 박스 영역
+        /* ==========================================
+           [3단계] 정중앙 자바스크립트 타이핑 박스 영역
            ========================================== */
         .full-message-box {
             position: absolute;
@@ -153,148 +156,212 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: transparent;
         }
 
         .line {
-            position: absolute; /* 한 자리에 정확히 겹쳐두기 */
+            position: absolute;
             font-size: 1.5rem;
             font-weight: 400;
             color: #d4d4d4;
             letter-spacing: -0.02em;
             text-align: center;
-            
-            width: 0; 
+            display: inline-block;
             white-space: nowrap;
-            overflow: hidden;
-            border-right: 2px solid transparent;
-            
-            /* 초기 상태는 완전히 숨김 */
             opacity: 0;
-            visibility: hidden;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .line.line-1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #fff;
         }
 
         @media (max-width: 768px) {
             .line { font-size: 1.1rem; }
+            .line.line-1 { font-size: 1.6rem; }
         }
 
-        /* 
-           [타임라인 가이드]
-           이전 코드에서 가장 완성도 높았던 원본 타이핑(typing) 키프레임 방식을 그대로 적용하고,
-           전체 줄이 교체되는 순간에만 상단 부모 클래스로 제어하여 어색함을 없앴습니다.
-        */
-
-        /* 첫 번째 줄: 태어나줘서 고마워, 진심으로. (글자수 12자 / 4.1초 ~ 7.1초 노출) */
-        body.is-active .line-1 {
-            font-size: 2.2rem;
-            font-weight: 700;
+        /* 커서 효과: 항상 글자 맨 뒤에 밀착 */
+        .cursor::after {
+            content: "|";
+            display: inline-block;
+            margin-left: 2px;
             color: #fff;
-            animation: 
-                lineShowHide 3.0s linear 4.1s forwards,
-                typing1 1.3s steps(12) 4.1s forwards,
-                cursor-blink 0.65s step-end 4.1s 2;
-        }
-        @media (max-width: 768px) { body.is-active .line-1 { font-size: 1.6rem; } }
-
-        /* 두 번째 줄: 수많은 계절이 소리 없이 흘러가도 (글자수 19자 / 7.2초 ~ 10.4초 노출) */
-        body.is-active .line-2 {
-            animation: 
-                lineShowHide 3.2s linear 7.2s forwards,
-                typing2 1.6s steps(19) 7.2s forwards,
-                cursor-blink 0.55s step-end 7.2s 3;
+            animation: blink 0.75s infinite;
         }
 
-        /* 세 번째 줄: 내 가장 아름다운 문장 속엔 늘 네가 있어. (글자수 24자 / 10.5초 ~ 13.9초 노출) */
-        body.is-active .line-3 {
-            animation: 
-                lineShowHide 3.4s linear 10.5s forwards,
-                typing3 1.8s steps(24) 10.5s forwards,
-                cursor-blink 0.6s step-end 10.5s 3;
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
         }
 
-        /* 네 번째 줄: 오늘만큼은 세상에서 가장 다정하길. (글자수 20자 / 14.0초 ~ 무한 유지) */
-        body.is-active .line-4 {
-            animation: 
-                lineStay 2.0s linear 14.0s forwards,
-                typing4 1.7s steps(20) 14.0s forwards,
-                cursor-infinite 0.75s step-end 14.0s infinite;
-        }
-
-
-        /* ==========================================
-           [타이핑 및 노출 제어 키프레임 프리셋]
-           ========================================== */
-        
-        /* 이전의 부드러웠던 순수 가로폭 증가(Typing) 모션 복구 */
-        @keyframes typing1 { from { width: 0; } to { width: 17em; max-width: 100%; } }
-        @keyframes typing2 { from { width: 0; } to { width: 23em; max-width: 100%; } }
-        @keyframes typing3 { from { width: 0; } to { width: 28em; max-width: 100%; } }
-        @keyframes typing4 { from { width: 0; } to { width: 23em; max-width: 100%; } }
-
-        /* 한 줄이 투명하게 피었다가 부드럽게 퇴장하는 전체 연출 */
-        @keyframes lineShowHide {
-            0% { opacity: 0; visibility: visible; }
-            10% { opacity: 1; transform: translateY(0); }
-            90% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-8px); visibility: hidden; } /* 위로 깔끔하게 사라짐 */
-        }
-
-        /* 마지막 라인 전용 (사라지지 않고 고정) */
-        @keyframes lineStay {
-            0% { opacity: 0; visibility: visible; }
-            100% { opacity: 1; visibility: visible; transform: translateY(0); }
-        }
-
-        /* 커서 눈 깜빡임 제어 */
-        @keyframes cursor-blink {
-            from, to { border-right-color: transparent; }
-            50% { border-right-color: #fff; }
-        }
-        @keyframes cursor-infinite {
-            from, to { border-right-color: transparent; }
-            50% { border-right-color: #fff; }
+        .line.fade-out {
+            opacity: 0 !important;
+            transform: translateY(-10px) !important;
         }
     </style>
 </head>
 <body>
-    
-    <!-- [오디오 소스] 넷플릭스/애플 스타일의 프리미엄 저음 쿵 사운드 -->
+    <canvas id="fireworksCanvas"></canvas>
     <audio id="introAudio" src="https://mixkit.co" preload="auto"></audio>
 
-    <!-- [0단계] 첫 화면 (준비됐나요? 대기 화면) -->
     <div class="start-screen" id="startScreen">
         <h1 class="start-title">준비됐나요?</h1>
         <button class="start-btn" onclick="startIntro()">시작하기</button>
     </div>
 
-    <!-- 인트로 및 전체 편지 콘텐츠 컨테이너 -->
     <div class="intro-container">
-        <!-- [1파트] 질문 던지기 -->
         <span class="word q1">지금</span>
         <span class="word q2">생각나는</span>
         <span class="word q3">사람이</span>
         <span class="word q4">있나요?</span>
 
-        <!-- [2파트] 연결되는 답변 문구 -->
         <span class="word w1">그 시절</span>
         <span class="word w2">그 거리</span>
         <span class="word w3">그리고</span>
         <span class="word w4">당신</span>
 
-        <!-- [3파트] 타이핑 편지 영역 -->
         <div class="full-message-box">
-            <span class="line line-1">생일 축하해! ✨</span>
-            <span class="line line-2">언제나 내 가장 소중한 기억 속에</span>
-            <span class="line line-3">기적처럼 함께해 줘서 고마워.</span>
-            <span class="line line-4">오늘 너의 하루가 가장 빛나기를 바랄게.</span>
+            <span class="line line-1" id="line1"></span>
+            <span class="line line-2" id="line2"></span>
+            <span class="line line-3" id="line3"></span>
+            <span class="line line-4" id="line4"></span>
         </div>
     </div>
 
-    <!-- 간단한 인터랙션 제어 자바스크립트 -->
     <script>
+        const messages = [
+            { id: 'line1', text: '생일 축하해! ✨', speed: 80, delay: 4100, duration: 3000 },
+            { id: 'line2', text: '언제나 내 가장 소중한 기억 속에', speed: 70, delay: 7200, duration: 3200 },
+            { id: 'line3', text: '기적처럼 함께해 줘서 고마워.', speed: 70, delay: 10500, duration: 3400 },
+            { id: 'line4', text: '오늘 너의 하루가 가장 빛나기를 바랄게.', speed: 75, delay: 14000, isLast: true }
+        ];
+
         function startIntro() {
-            // 버튼 클릭 시 body에 클래스를 추가하여 숨겨진 전체 CSS 애니메이션을 일제히 트리거합니다.
             document.body.classList.add('is-active');
+
+            // 타이핑 스케줄링 실행
+            messages.forEach(msg => {
+                setTimeout(() => {
+                    typeMessage(msg);
+                }, msg.delay);
+            });
+        }
+
+        function typeMessage(msgConfig) {
+            const el = document.getElementById(msgConfig.id);
+            el.style.opacity = '1';
+            el.classList.add('cursor');
+            
+            let index = 0;
+            const timer = setInterval(() => {
+                if (index < msgConfig.text.length) {
+                    el.textContent += msgConfig.text.charAt(index);
+                    index++;
+                } else {
+                    clearInterval(timer);
+                    
+                    // 마지막 문장 타이핑 완료 시 폭죽 실행
+                    if (msgConfig.isLast) {
+                        launchFireworks();
+                    } else {
+                        // 다음 문장 전환 전 부드럽게 퇴장
+                        setTimeout(() => {
+                            el.classList.add('fade-out');
+                            setTimeout(() => {
+                                el.classList.remove('cursor');
+                            }, 400);
+                        }, msgConfig.duration - (msgConfig.text.length * msgConfig.speed) - 400);
+                    }
+                }
+            }, msgConfig.speed);
+        }
+
+        /* ==========================================
+           [폭죽 애니메이션 엔진]
+           ========================================== */
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 6 + 2;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.015 + 0.008;
+                this.gravity = 0.08;
+            }
+
+            update() {
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                this.vy += this.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= this.decay;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createExplosion(x, y) {
+            const colors = ['#ff4d4d', '#ffbc00', '#2ed573', '#1e90ff', '#a55eea', '#ffffff'];
+            const count = 70;
+            for (let i = 0; i < count; i++) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function animateFireworks() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(animateFireworks);
+        }
+
+        function launchFireworks() {
+            animateFireworks();
+            
+            let timer = setInterval(() => {
+                const x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
+                const y = Math.random() * canvas.height * 0.5 + canvas.height * 0.1;
+                createExplosion(x, y);
+            }, 300);
+
+            setTimeout(() => {
+                clearInterval(timer);
+            }, 3800);
         }
     </script>
 </body>
