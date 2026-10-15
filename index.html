@@ -68,7 +68,7 @@
     <script>
         let items = []; // XML item 노드들을 담을 변수
         const xhttp = new XMLHttpRequest();
-        xhttp.open("GET", "http://apis.data.go.kr/6260000/FoodService/getFoodKr?serviceKey=6952fe47192115896430d57c4acd0766672b22a2630272a1fa2425bd5fb86288&numOfRows=10&pageNo=1");
+        xhttp.open("GET", "http://apis.data.go.kr/6260000/FoodService/getFoodKr?serviceKey=6952fe47192115896430d57c4acd0766672b22a2630272a1fa2425bd5fb86288&numOfRows=100&pageNo=1");
         
         xhttp.onload = function() {
             if (xhttp.status >= 200 && xhttp.status < 300) {
