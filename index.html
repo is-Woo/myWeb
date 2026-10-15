@@ -1,136 +1,193 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>메인 | My Hub</title>
+    <title>오늘의 과제 - 랜덤 맛집</title>
     <style>
-        /* 기본 스타일 리셋 */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif;
-            background-color: #f8f9fa;
-            color: #333333;
-            min-height: 100vh;
+        body{
+            border: 1px solid black;
+            width: 1000px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            padding: 20px;
+            justify-content: center;
         }
 
-        .container {
-            width: 100%;
-            max-width: 480px;
+        table, th, td{
+            margin-top: 10px;
+            border-collapse: collapse;
+            border: 1px solid black;
+            padding: 10px;
             text-align: center;
         }
 
-        /* 헤더 영역 */
-        header {
-            margin-bottom: 32px;
+        th{
+            background-color: #D35400; /* 따뜻한 오렌지 브라운 */
+            color: #FFFFFF;            /* 흰색 텍스트 */
         }
 
-        header h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #111111;
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
+        button{
+            background-color: #D35400;
+            color: #FFFFFF;
+            font-weight: bold;
+            border: 3px solid #BA4A00; /* 조금 더 진한 테두리 */
+            border-radius: 5px;
+            width: 160px;
+            height: 40px;
+            margin-top: 8px;
+            cursor: pointer;
         }
 
-        header p {
-            font-size: 0.9rem;
-            color: #767676;
+        #map {
+            width: 100%;
+            height: 350px;
         }
 
-        /* 카드 선택 영역 */
-        .choice {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .choice-card {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background-color: #ffffff;
-            padding: 24px;
-            border-radius: 16px;
-            text-decoration: none;
-            color: inherit;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-            border: 1px solid #f0f0f0;
-            transition: all 0.25s ease;
-        }
-
-        /* 호버 애니메이션 효과 */
-        .choice-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            border-color: #e2e2e2;
-        }
-
-        .card-info {
-            text-align: left;
-        }
-
-        .card-info h3 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: #222222;
-            margin-bottom: 4px;
-        }
-
-        .card-info p {
-            font-size: 0.85rem;
-            color: #888888;
-        }
-
-        .card-icon {
-            font-size: 1.2rem;
-            color: #b0b0b0;
-            transition: transform 0.25s ease, color 0.25s ease;
-        }
-
-        .choice-card:hover .card-icon {
-            color: #111111;
-            transform: translateX(4px);
+        img {
+            max-width: 100%;
+            height: auto;
         }
     </style>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=b7b4b7ba8de71bca753205fb8c519623&libraries=services"></script>
 </head>
 <body>
+    <h1>오늘의 과제</h1>
+    <button type="button" id="btn-random">랜덤 맛집 불러오기</button>
 
-    <div class="container">
-        <header>
-            <h1>WELCOME</h1>
-            <p>이동할 페이지를 선택해 주세요.</p>
-        </header>
-
-        <main class="choice">
-            <!-- 편지 페이지 링크 -->
-            <a href="message_test.html" class="choice-card">
-                <div class="card-info">
-                    <h3>편지</h3>
-                    <p>메시지 확인하기</p>
-                </div>
-                <span class="card-icon">&rarr;</span>
-            </a>
-
-            <!-- 책 뷰어 페이지 링크 -->
-            <a href="book_webview.html" class="choice-card">
-                <div class="card-info">
-                    <h3>책 뷰어</h3>
-                    <p>도서 뷰어 이동하기</p>
-                </div>
-                <span class="card-icon">&rarr;</span>
-            </a>
-        </main>
+    <div class="main-container">
+        <table>
+            <tbody id="detailContent">
+                <tr>
+                    <td colspan="4">데이터를 불러오는 중입니다...</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
+    
+    <script>
+        let items = []; // XML item 노드들을 담을 변수
+        const xhttp = new XMLHttpRequest();
+        xhttp.open("GET", "http://apis.data.go.kr/6260000/FoodService/getFoodKr?serviceKey=6952fe47192115896430d57c4acd0766672b22a2630272a1fa2425bd5fb86288&numOfRows=10&pageNo=1");
+        
+        xhttp.onload = function() {
+            if (xhttp.status >= 200 && xhttp.status < 300) {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xhttp.responseText, "text/xml");
 
+                items = xmlDoc.getElementsByTagName("item");
+        
+                if (items.length > 0) {
+                    pickData(0);
+                }
+            } else {
+                console.error("서버 응답 실패, 상태 코드:", xhttp.status);
+            }
+        };
+        xhttp.send();
+
+        document.getElementById('btn-random').addEventListener('click', function() {
+            if (items.length > 0) {
+                const randomIndex = Math.floor(Math.random() * items.length);
+                pickData(randomIndex);
+            }
+        });
+
+        function pickData(index) {
+            const item = items[index];
+            if (!item) return;
+
+            const getValue = (tagName) => item.getElementsByTagName(tagName)[0]?.textContent || "";
+
+            const mainTitle = getValue("MAIN_TITLE");
+            const title = getValue("TITLE");
+            const mainImgNormal = getValue("MAIN_IMG_NORMAL");
+            const place = getValue("PLACE");
+            const gugunNm = getValue("GUGUN_NM");
+            const cntctTel = getValue("CNTCT_TEL");
+            const homepageUrl = getValue("HOMEPAGE_URL");
+            const usageTime = getValue("USAGE_DAY_WEEK_AND_TIME");
+            const addr1 = getValue("ADDR1");
+            const itemCntnts = getValue("ITEMCNTNTS");
+
+            const tbody = document.getElementById('detailContent');
+            tbody.innerHTML = `
+                <tr>
+                    <th colspan="4">제목</th>
+                </tr>
+                <tr>
+                    <td colspan="4" style="font-weight:bold">${mainTitle || '정보 없음'}</td>
+                </tr>
+                <tr>
+                    <th colspan="4">이미지</th>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <img src="${mainImgNormal}" alt="이미지" width="800">
+                    </td>
+                </tr>
+                <tr>
+                    <th style="width: 25%;">장소</th>
+                    <th style="width: 25%;">지역(구군)</th>
+                    <th style="width: 25%;">연락처</th>
+                    <th style="width: 25%;">홈페이지</th>
+                </tr>
+                <tr>
+                    <td>${place || '정보 없음'}</td>
+                    <td>${gugunNm || '정보 없음'}</td>
+                    <td>${cntctTel || '정보 없음'}</td>
+                    <td>
+                        ${homepageUrl ? `<a href="${homepageUrl}" target="_blank">바로가기</a>` : '정보 없음'}
+                    </td>
+                </tr>
+                <tr>
+                    <th colspan="2" style="width: 50%;">운영 및 시간</th>
+                    <th colspan="2" style="width: 50%;">주소</th>
+                </tr>
+                <tr>
+                    <td colspan="2">${usageTime || '정보 없음'}</td>
+                    <td colspan="2">${addr1 || '정보 없음'}</td>
+                </tr>
+                <tr>
+                    <th colspan="4">지도</th>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <div id="map"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <th colspan="4">상세 내용</th>
+                </tr>
+                <tr>
+                    <td colspan="4">${itemCntnts || '정보 없음'}</td>
+                </tr>
+            `;
+
+            var mapContainer = document.getElementById('map');
+            var mapOption = { 
+                center: new kakao.maps.LatLng(33.450701, 126.570667), 
+                level: 3 
+            };
+
+            var map = new kakao.maps.Map(mapContainer, mapOption); 
+            var geocoder = new kakao.maps.services.Geocoder();
+
+            geocoder.addressSearch(addr1, function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+
+                    var marker = new kakao.maps.Marker({
+                        position: coords
+                    });
+                    marker.setMap(map);
+
+                    map.setCenter(coords);
+                } else {
+                    console.error("주소 검색 실패: " + addr1);
+                }
+            });
+        }
+    </script>
 </body>
 </html>
